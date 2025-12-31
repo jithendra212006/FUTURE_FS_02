@@ -41,9 +41,17 @@ export default function SignUpPage() {
   };
 
   const signUpGoogle = async () => {
+    const origin =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL ||
+          "https://future-fs-02-nubj.vercel.app";
+
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: "http://localhost:3000/shop" },
+      options: {
+        redirectTo: `${origin}/shop`,
+      },
     });
   };
 
@@ -56,7 +64,9 @@ export default function SignUpPage() {
           Create Account
         </p>
 
-        {errorMsg && <p className="text-red-400 text-sm text-center mt-4">{errorMsg}</p>}
+        {errorMsg && (
+          <p className="text-red-400 text-sm text-center mt-4">{errorMsg}</p>
+        )}
 
         <div className="mt-6">
           <label className="text-xs uppercase tracking-widest text-gray-400">
@@ -106,7 +116,7 @@ export default function SignUpPage() {
         </button>
 
         <p className="text-center text-gray-400 text-sm mt-6">
-          Already have an account?{" "}
+          Already have an account?
           <a href="/signin" className="underline">
             Sign In
           </a>

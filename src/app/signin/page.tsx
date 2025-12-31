@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
@@ -37,10 +36,16 @@ export default function SignInPage() {
   };
 
   const signInWithGoogle = async () => {
+    const origin =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL ||
+          "https://future-fs-02-nubj.vercel.app";
+
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: "http://localhost:3000/shop",
+        redirectTo: `${origin}/shop`,
       },
     });
   };
@@ -49,18 +54,15 @@ export default function SignInPage() {
     <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
       <div className="w-full max-w-md bg-neutral-900 border border-white/10 p-8 shadow-2xl">
 
-        {/* Logo */}
         <h1 className="text-center text-4xl tracking-widest font-serif">NOIR</h1>
         <p className="text-center text-gray-400 mt-2 tracking-widest text-xs uppercase">
           Sign In
         </p>
 
-        {/* Error */}
         {errorMsg && (
           <p className="text-red-400 text-sm text-center mt-4">{errorMsg}</p>
         )}
 
-        {/* Email */}
         <div className="mt-6">
           <label className="text-xs uppercase tracking-widest text-gray-400">
             Email
@@ -74,7 +76,6 @@ export default function SignInPage() {
           />
         </div>
 
-        {/* Password */}
         <div className="mt-4">
           <label className="text-xs uppercase tracking-widest text-gray-400">
             Password
@@ -88,7 +89,6 @@ export default function SignInPage() {
           />
         </div>
 
-        {/* Login Button */}
         <button
           onClick={signInEmail}
           disabled={loading}
@@ -97,14 +97,12 @@ export default function SignInPage() {
           {loading ? "Signing in..." : "Sign In"}
         </button>
 
-        {/* Divider */}
         <div className="flex items-center gap-3 my-6">
           <span className="h-px bg-white/20 w-full"></span>
           <span className="text-xs text-gray-400 tracking-widest">OR</span>
           <span className="h-px bg-white/20 w-full"></span>
         </div>
 
-        {/* Google */}
         <button
           onClick={signInWithGoogle}
           className="w-full border border-white py-3 uppercase tracking-widest text-sm hover:bg-white hover:text-black transition"
@@ -112,12 +110,9 @@ export default function SignInPage() {
           Continue With Google
         </button>
 
-        {/* Bottom */}
         <p className="text-center text-gray-400 text-sm mt-6">
-          Don’t have an account?{" "}
-          <a href="/signup" className="underline">
-            Create one
-          </a>
+          Don’t have an account?
+          <a href="/signup" className="underline"> Create one</a>
         </p>
       </div>
     </div>
