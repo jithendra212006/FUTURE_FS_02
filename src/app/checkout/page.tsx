@@ -42,7 +42,7 @@ export default function Checkout() {
           <p className="text-muted-foreground mb-4">Your cart is empty</p>
 
           <Link
-            href="/"
+            href="/shop"
             className="inline-flex items-center gap-2 text-sm uppercase tracking-widest hover:text-muted-foreground transition-fast"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -95,7 +95,7 @@ export default function Checkout() {
       <div className="container mx-auto px-6 py-8">
 
         <Link
-          href="/"
+          href="/shop"
           className="inline-flex items-center gap-2 text-sm uppercase tracking-widest hover:text-muted-foreground transition-fast mb-12"
         >
           <ArrowLeft className="w-4 h-4" />
