@@ -132,12 +132,7 @@ export default function Header() {
 
                   <div className="flex flex-col text-sm">
 
-                    <button
-                      className="px-4 py-3 text-left hover:bg-gray-100"
-                      onClick={() => (window.location.href = "/profile")}
-                    >
-                      Profile
-                    </button>
+                    
 
                     <button
                       className="px-4 py-3 text-left hover:bg-gray-100"
