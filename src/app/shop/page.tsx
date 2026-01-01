@@ -8,7 +8,7 @@ import CollectionSection from "@/components/CollectionSection";
 export default function Home() {
   return (
     <>
-      
+      <Header />
       <Hero />
       <CollectionSection/>
       <ProductGrid/>
