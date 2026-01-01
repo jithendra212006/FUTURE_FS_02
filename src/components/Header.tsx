@@ -35,22 +35,31 @@ export default function Header() {
 
     syncUser();
 
-    // ✅ Correct Supabase listener
+    // Auth listener
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+
+      // redirect when signed out (backup)
+      if (event === "SIGNED_OUT") {
+        window.location.replace("/");
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  // ✅ Reliable logout with slight delay
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/";
+
+    setTimeout(() => {
+      window.location.replace("/");
+    }, 300);
   };
 
-  // Close dropdown when clicking outside
+  // Close dropdown on outside click
   useEffect(() => {
     const close = () => setOpenMenu(false);
     window.addEventListener("click", close);
@@ -60,6 +69,7 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+        
         {/* Logo */}
         <Link
           href="/shop"
@@ -68,22 +78,17 @@ export default function Header() {
           NOIR
         </Link>
 
-        {/* Center Menu */}
+        {/* Menu */}
         <nav className="hidden md:flex items-center gap-10 tracking-widest uppercase text-sm">
-          <Link href="/shop" className="hover:text-gray-500">
-            Shop
-          </Link>
-          <Link href="#collections" className="hover:text-gray-500">
-            Collection
-          </Link>
-          <Link href="#" className="hover:text-gray-500">
-            About
-          </Link>
+          <Link href="/shop" className="hover:text-gray-500">Shop</Link>
+          <Link href="#collections" className="hover:text-gray-500">Collection</Link>
+          <Link href="#" className="hover:text-gray-500">About</Link>
         </nav>
 
-        {/* RIGHT SECTION */}
+        {/* Right */}
         <div className="flex items-center gap-4">
-          {/* Cart - Only When Logged In */}
+          
+          {/* Cart - logged in */}
           {user && (
             <button
               onClick={() => setIsCartOpen(true)}
@@ -102,7 +107,7 @@ export default function Header() {
             </button>
           )}
 
-          {/* Guest → Sign In */}
+          {/* Guest */}
           {!user && (
             <Link
               href="/signin"
@@ -112,9 +117,10 @@ export default function Header() {
             </Link>
           )}
 
-          {/* Logged In → Avatar + Dropdown */}
+          {/* Logged In */}
           {user && (
             <div className="relative">
+              
               {/* Avatar */}
               <button
                 onClick={(e) => {
@@ -129,13 +135,14 @@ export default function Header() {
               {/* Dropdown */}
               {openMenu && (
                 <div className="absolute right-0 mt-3 bg-white shadow-xl border border-gray-200 w-52 animate-fadein">
+                  
                   <div className="px-4 py-3 text-sm border-b">
                     <p className="font-semibold">Account</p>
                     <p className="text-gray-500 truncate">{user.email}</p>
                   </div>
 
                   <div className="flex flex-col text-sm">
-                    <button
+                    <button 
                       className="px-4 py-3 text-left hover:bg-gray-100"
                       onClick={() => (window.location.href = "/orders")}
                     >
@@ -144,7 +151,10 @@ export default function Header() {
 
                     <button
                       className="px-4 py-3 text-left hover:bg-gray-100"
-                      onClick={handleLogout}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleLogout();
+                      }}
                     >
                       Logout
                     </button>
@@ -153,6 +163,7 @@ export default function Header() {
               )}
             </div>
           )}
+
         </div>
       </div>
     </header>
