@@ -35,11 +35,14 @@ export default function Header() {
 
     syncUser();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      syncUser();
+    // ✅ Correct Supabase listener
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
     });
 
-    return () => listener.subscription.unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleLogout = async () => {
@@ -57,7 +60,6 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        
         {/* Logo */}
         <Link
           href="/shop"
@@ -68,14 +70,19 @@ export default function Header() {
 
         {/* Center Menu */}
         <nav className="hidden md:flex items-center gap-10 tracking-widest uppercase text-sm">
-          <Link href="/shop" className="hover:text-gray-500">Shop</Link>
-          <Link href="#collections" className="hover:text-gray-500">Collection</Link>
-          <Link href="#" className="hover:text-gray-500">About</Link>
+          <Link href="/shop" className="hover:text-gray-500">
+            Shop
+          </Link>
+          <Link href="#collections" className="hover:text-gray-500">
+            Collection
+          </Link>
+          <Link href="#" className="hover:text-gray-500">
+            About
+          </Link>
         </nav>
 
         {/* RIGHT SECTION */}
         <div className="flex items-center gap-4">
-
           {/* Cart - Only When Logged In */}
           {user && (
             <button
@@ -83,7 +90,6 @@ export default function Header() {
               className="relative p-2 hover:bg-gray-200 rounded transition"
             >
               <ShoppingBag className="w-5 h-5" />
-
               {totalItems > 0 && (
                 <motion.span
                   initial={{ scale: 0 }}
@@ -109,12 +115,11 @@ export default function Header() {
           {/* Logged In → Avatar + Dropdown */}
           {user && (
             <div className="relative">
-              
               {/* Avatar */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setOpenMenu(prev => !prev);
+                  setOpenMenu((prev) => !prev);
                 }}
                 className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center text-sm uppercase"
               >
@@ -124,19 +129,15 @@ export default function Header() {
               {/* Dropdown */}
               {openMenu && (
                 <div className="absolute right-0 mt-3 bg-white shadow-xl border border-gray-200 w-52 animate-fadein">
-                  
                   <div className="px-4 py-3 text-sm border-b">
                     <p className="font-semibold">Account</p>
                     <p className="text-gray-500 truncate">{user.email}</p>
                   </div>
 
                   <div className="flex flex-col text-sm">
-
-                    
-
-                    <button 
+                    <button
                       className="px-4 py-3 text-left hover:bg-gray-100"
-                      onClick={() => window.location.href = "/orders"}
+                      onClick={() => (window.location.href = "/orders")}
                     >
                       My Orders
                     </button>
@@ -152,7 +153,6 @@ export default function Header() {
               )}
             </div>
           )}
-
         </div>
       </div>
     </header>
