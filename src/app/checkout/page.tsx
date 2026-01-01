@@ -14,6 +14,7 @@ import { useCart } from "@/context/CartContext";
 import Loader from "@/components/Loader";
 import { toast } from "sonner";
 import Image from "next/image";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function Checkout() {
   const { items, totalPrice, clearCart } = useCart();
@@ -30,11 +31,40 @@ export default function Checkout() {
 
     setIsProcessing(false);
     setIsComplete(true);
+
+    // ---------- GET USER ----------
+    const { data } = await supabase.auth.getUser();
+    const user = data?.user;
+
+    if (!user) {
+      toast.error("You must be logged in to place an order");
+      return;
+    }
+
+    // ---------- CREATE ORDER ----------
+    const orderNumber = "ORD-" + Date.now();
+
+    const { error } = await supabase.from("orders").insert({
+      user_id: user.id,
+      order_number: orderNumber,
+      status: "Processing",
+      total: totalPrice,
+      items: items,
+    });
+
+    if (error) {
+      console.log(error);
+      toast.error("Order failed");
+      return;
+    }
+
     clearCart();
     toast.success("Order placed successfully!");
+
+    router.push("/orders");
   };
 
-  // Empty Cart State
+  // Empty Cart
   if (items.length === 0 && !isComplete) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -53,7 +83,7 @@ export default function Checkout() {
     );
   }
 
-  // Success State
+  // Success Page
   if (isComplete) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
@@ -76,15 +106,8 @@ export default function Checkout() {
           </h1>
 
           <p className="text-muted-foreground mb-8">
-            Your order has been confirmed. We will send you an email with your order details.
+            Redirecting to your orders...
           </p>
-
-          <button
-            onClick={() => router.push("/")}
-            className="bg-primary text-primary-foreground px-8 py-4 text-sm uppercase tracking-widest hover:bg-primary/90 transition-elegant"
-          >
-            Continue Shopping
-          </button>
         </motion.div>
       </div>
     );
@@ -104,9 +127,11 @@ export default function Checkout() {
 
         <div className="grid lg:grid-cols-2 gap-16">
 
-          {/* Left Side */}
+          {/* LEFT */}
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-            <h1 className={`${bodoni.className} font-display text-3xl md:text-4xl mb-8`}>Checkout</h1>
+            <h1 className={`${bodoni.className} font-display text-3xl md:text-4xl mb-8`}>
+              Checkout
+            </h1>
 
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Contact */}
@@ -116,7 +141,7 @@ export default function Checkout() {
                   required
                   type="email"
                   placeholder="Email"
-                  className="w-full border border-border px-4 py-3 bg-background focus:outline-none focus:border-foreground transition-fast"
+                  className="w-full border border-border px-4 py-3 bg-background"
                 />
               </div>
 
@@ -125,20 +150,17 @@ export default function Checkout() {
                 <h2 className="text-xs uppercase tracking-widest mb-4">Shipping Address</h2>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <input required placeholder="First name" className="border border-border px-4 py-3 bg-background"/>
-                  <input required placeholder="Last name" className="border border-border px-4 py-3 bg-background"/>
+                  <input required placeholder="First name" className="border px-4 py-3"/>
+                  <input required placeholder="Last name" className="border px-4 py-3"/>
                 </div>
 
-                <input
-                  required
-                  placeholder="Address"
-                  className="w-full border border-border px-4 py-3 bg-background mt-4"
-                />
+                <input required placeholder="Address"
+                  className="w-full border px-4 py-3 mt-4"/>
 
                 <div className="grid grid-cols-3 gap-4 mt-4">
-                  <input required placeholder="City" className="border border-border px-4 py-3 bg-background"/>
-                  <input required placeholder="State" className="border border-border px-4 py-3 bg-background"/>
-                  <input required placeholder="ZIP" className="border border-border px-4 py-3 bg-background"/>
+                  <input required placeholder="City" className="border px-4 py-3"/>
+                  <input required placeholder="State" className="border px-4 py-3"/>
+                  <input required placeholder="ZIP" className="border px-4 py-3"/>
                 </div>
               </div>
 
@@ -146,19 +168,20 @@ export default function Checkout() {
               <div>
                 <h2 className="text-xs uppercase tracking-widest mb-4">Payment</h2>
 
-                <input required placeholder="Card number" className="w-full border border-border px-4 py-3 bg-background"/>
+                <input required placeholder="Card number"
+                  className="w-full border px-4 py-3"/>
 
                 <div className="grid grid-cols-2 gap-4 mt-4">
-                  <input required placeholder="MM / YY" className="border border-border px-4 py-3 bg-background"/>
-                  <input required placeholder="CVC" className="border border-border px-4 py-3 bg-background"/>
+                  <input required placeholder="MM / YY" className="border px-4 py-3"/>
+                  <input required placeholder="CVC" className="border px-4 py-3"/>
                 </div>
               </div>
 
-              {/* Pay Button */}
+              {/* PAY BUTTON */}
               <button
                 type="submit"
                 disabled={isProcessing}
-                className="w-full bg-primary text-primary-foreground py-4 text-sm uppercase tracking-widest hover:bg-primary/90 transition-elegant disabled:opacity-70 flex items-center justify-center gap-3"
+                className="w-full bg-black text-white py-4 text-sm uppercase tracking-widest hover:bg-black/90 disabled:opacity-70 flex items-center justify-center gap-3"
               >
                 {isProcessing ? (
                   <>
@@ -172,7 +195,7 @@ export default function Checkout() {
             </form>
           </motion.div>
 
-          {/* Right Side Summary */}
+          {/* RIGHT SUMMARY */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -184,22 +207,15 @@ export default function Checkout() {
             <div className="space-y-4 mb-8">
               {items.map(item => (
                 <div key={item.id} className="flex gap-4">
-                  <div className="w-20 h-24 bg-background overflow-hidden relative">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                    />
-                    <span className="absolute -top-2 -right-2 w-6 h-6 bg-foreground text-background text-xs flex items-center justify-center">
+                  <div className="w-20 h-24 bg-background relative overflow-hidden">
+                    <Image src={item.image} alt={item.name} fill className="object-cover" />
+                    <span className="absolute -top-2 -right-2 w-6 h-6 bg-black text-white text-xs flex items-center justify-center">
                       {item.quantity}
                     </span>
                   </div>
 
                   <div className="flex-1">
-                    <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                      {item.category}
-                    </p>
+                    <p className="text-xs uppercase text-muted-foreground">{item.category}</p>
                     <h3 className="font-display">{item.name}</h3>
                     <p className="text-sm mt-1">${item.price * item.quantity}</p>
                   </div>

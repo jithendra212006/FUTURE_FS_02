@@ -134,9 +134,9 @@ export default function Header() {
 
                     
 
-                    <button
+                    <button 
                       className="px-4 py-3 text-left hover:bg-gray-100"
-                      onClick={() => alert("Orders Page Coming Soon")}
+                      onClick={() => window.location.href = "/orders"}
                     >
                       My Orders
                     </button>

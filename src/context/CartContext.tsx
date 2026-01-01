@@ -1,9 +1,9 @@
 "use client";
-import { useEffect } from "react";
 
-
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
-    import { CartItem, Product } from "@/types/products";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { CartItem, Product } from "@/types/products";
+import { supabase } from "@/lib/supabaseClient";
+import type { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
 interface CartContextType {
@@ -21,22 +21,42 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  
-  const [items, setItems] = useState<CartItem[]>(() => {
-  if (typeof window !== "undefined") {
-    const saved = localStorage.getItem("cart");
-    return saved ? JSON.parse(saved) : [];
-  }
-  return [];
-});
-
+  const [user, setUser] = useState<User | null>(null);
+  const [items, setItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const getStorageKey = (id?: string) =>
+    id ? `cart-${id}` : "cart-guest";
+
+  // ---------------- LOAD USER + CART ----------------
   useEffect(() => {
-  localStorage.setItem("cart", JSON.stringify(items));
-}, [items]);
+    const loadUserAndCart = async () => {
+      const { data } = await supabase.auth.getUser();
+      const currentUser = data?.user || null;
+      setUser(currentUser);
 
-  
+      const key = getStorageKey(currentUser?.id);
+      const saved = typeof window !== "undefined" ? localStorage.getItem(key) : null;
+      setItems(saved ? JSON.parse(saved) : []);
+    };
 
+    loadUserAndCart();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(async () => {
+      await loadUserAndCart();
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // ---------------- SAVE CART ----------------
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const key = getStorageKey(user?.id);
+    localStorage.setItem(key, JSON.stringify(items));
+  }, [items, user]);
+
+  // ---------------- FUNCTIONS ----------------
   const addToCart = useCallback((product: Product) => {
     setItems(prev => {
       const existing = prev.find(item => item.id === product.id);

@@ -37,7 +37,9 @@ export default function ProductCard({ product, index }: ProductCardProps) {
 
         <button
           onClick={() => addToCart(product)}
-          className="absolute bottom-0 left-0 right-0 bg-black text-white py-3 text-sm tracking-widest uppercase opacity-0 group-hover:opacity-100 transition"
+          className="absolute bottom-0 left-0 right-0 bg-black text-white py-3 text-sm tracking-widest uppercase 
+opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"
+
         >
           Add To Cart
         </button>
