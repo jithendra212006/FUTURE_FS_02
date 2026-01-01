@@ -5,7 +5,7 @@ export const bodoni = Bodoni_Moda({
   weight: ["400", "500", "600", "700", "900"],
 });
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check } from "lucide-react";
 import Link from "next/link";
@@ -26,13 +26,11 @@ export default function Checkout() {
     e.preventDefault();
     setIsProcessing(true);
 
-    // simulate payment
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     setIsProcessing(false);
     setIsComplete(true);
 
-    // ---------- GET USER ----------
     const { data } = await supabase.auth.getUser();
     const user = data?.user;
 
@@ -41,7 +39,6 @@ export default function Checkout() {
       return;
     }
 
-    // ---------- CREATE ORDER ----------
     const orderNumber = "ORD-" + Date.now();
 
     const { error } = await supabase.from("orders").insert({
@@ -60,9 +57,18 @@ export default function Checkout() {
 
     clearCart();
     toast.success("Order placed successfully!");
-
-    router.push("/orders");
   };
+
+  // 🔥 Redirect to orders after success
+  useEffect(() => {
+    if (isComplete) {
+      const timer = setTimeout(() => {
+        router.replace("/orders");
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isComplete, router]);
 
   // Empty Cart
   if (items.length === 0 && !isComplete) {
@@ -134,6 +140,7 @@ export default function Checkout() {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-8">
+              
               {/* Contact */}
               <div>
                 <h2 className="text-xs uppercase tracking-widest mb-4">Contact</h2>
